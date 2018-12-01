@@ -14,6 +14,8 @@ potentially useful to others.
 
 ## Scripts
 
+-   **Analyze Shellcode** - detect and annotate typical shellcode patterns:
+    known code blocks, call import by hash, and call/pop reg
 -   **Copy Selection As Python** - copy bytes in current selection to the
     clipboard, in python syntax, with assembly code in comments
 -   **Copy Selection As Yara** - copy bytes in current selection to the
