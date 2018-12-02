@@ -33,6 +33,9 @@ import traceback
 
 IMPORT_HASHES_ROR13 = {
     0x5BAE572D: "kernel32.dll!WriteFile",
+    0xD63F3D0C: "kernel32.dll!WriteFileEx",
+    0xBB5F9EAD: "kernel32.dll!ReadFile",
+    0xC2911CE4: "kernel32.dll!ReadFileEx",
     0x4FDAF6DA: "kernel32.dll!CreateFileA",
     0x13DD2ED7: "kernel32.dll!DeleteFileA",
     0xE449F330: "kernel32.dll!GetTempPathA",
@@ -54,10 +57,6 @@ IMPORT_HASHES_ROR13 = {
     0xE27D6F28: "kernel32.dll!ConnectNamedPipe",
     0xFCDDFAC0: "kernel32.dll!DisconnectNamedPipe",
     0x6F721347: "ntdll.dll!RtlExitUserThread",
-    0xBB5F9EAD: "ntdll.dll!ReadFile",
-    0xC2911CE4: "ntdll.dll!ReadFileEx",
-    0x5BAE572D: "ntdll.dll!WriteFile",
-    0xD63F3D0C: "ntdll.dll!WriteFileEx",
     0x23E38427: "advapi32.dll!RevertToSelf",
     0x315E2145: "user32.dll!GetDesktopWindow",
     0x006B8029: "ws2_32.dll!WSAStartup",
