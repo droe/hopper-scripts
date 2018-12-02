@@ -19,16 +19,15 @@
 # Press cancel if you made manual adjustments that you want to keep.
 
 # TODO - add more known code blocks
-# TODO - add hashes for other hashing methods than Metasploit's
+# TODO - add hashes for other hashing methods than Metasploit ROR 13
+# TODO - move hashes and known code blocks into external data file
 # TODO - improve performance using newer Hopper API functions
 
 
 import traceback
 
 
-# Hash constants will be annotated with an inline comment naming the DLL and
-# imported function that is references.
-DLL_FUNC_HASHES = {
+IMPORT_HASHES_ROR13 = {
     0x5BAE572D: "kernel32.dll!WriteFile",
     0x4FDAF6DA: "kernel32.dll!CreateFileA",
     0x13DD2ED7: "kernel32.dll!DeleteFileA",
@@ -46,7 +45,15 @@ DLL_FUNC_HASHES = {
     0x56A2B5F0: "kernel32.dll!ExitProcess",
     0x0A2A1DE0: "kernel32.dll!ExitThread",
     0x5DE2C5AA: "kernel32.dll!GetLastError",
+    0xD4DF7045: "kernel32.dll!CreateNamedPipeA",
+    0xD58F7045: "kernel32.dll!CreateNamedPipeW",
+    0xE27D6F28: "kernel32.dll!ConnectNamedPipe",
+    0xFCDDFAC0: "kernel32.dll!DisconnectNamedPipe",
     0x6F721347: "ntdll.dll!RtlExitUserThread",
+    0xBB5F9EAD: "ntdll.dll!ReadFile",
+    0xC2911CE4: "ntdll.dll!ReadFileEx",
+    0x5BAE572D: "ntdll.dll!WriteFile",
+    0xD63F3D0C: "ntdll.dll!WriteFileEx",
     0x23E38427: "advapi32.dll!RevertToSelf",
     0x315E2145: "user32.dll!GetDesktopWindow",
     0x006B8029: "ws2_32.dll!WSAStartup",
@@ -68,7 +75,6 @@ DLL_FUNC_HASHES = {
 }
 
 
-# Matching code blocks will be named, depending on the proc flag.
 # First match per start address wins.
 KNOWN_BLOCKS = (
 {
@@ -327,37 +333,41 @@ def main():
         stackop_addr, stackop_ins = reader.first_stack_instruction(target_addr)
         if stackop_ins == None or stackop_ins.getInstructionString() != 'pop':
             continue
+
         if seg.getNameAtAddress(target_addr) == None:
-            seg.setNameAtAddress(target_addr,
-                                 "pop_retaddr_%x" % target_addr)
-        reg = stackop_ins.getRawArgument(0)
+            seg.setNameAtAddress(target_addr, "pop_retaddr_%x" % target_addr)
+
+        #reg = stackop_ins.getRawArgument(0)
         print("---> found call + pop retaddr combo at %s -> %s" % (
             hexaddr(addr), hexaddr(target_addr)))
+
         loaded_addr = addr + ins.getInstructionLength()
         if loaded_addr == range_addr + range_size:
             # Hopper silently ignores xrefs to EOF
             seg.setInlineCommentAtAddress(stackop_addr, "end of shellcode")
         else:
             seg.addReference(stackop_addr, loaded_addr)
+            if seg.getNameAtAddress(loaded_addr) == None:
+                seg.setNameAtAddress(loaded_addr, "retaddr_%x" % loaded_addr)
 
-    # annotate known winapi hashes
+
+    # annotate known import hashes
+    hash_ops = {
+        # op, arg index
+        'push':     0,
+        'mov':      1,
+        'movabs':   1,
+    }
     for addr, ins in reader.yield_instructions(range_addr):
-        # x86 uses push, x64 uses movabs
         op = ins.getInstructionString()
-        if not op in ('push', 'mov', 'movabs'):
+        if not op in hash_ops:
             continue
-        if op == 'push':
-            argn = 0
-        elif op == 'mov':
-            argn = 1
-        elif op == 'movabs':
-            argn = 1
-        arg = ins.getRawArgument(argn)
+        arg = ins.getRawArgument(hash_ops[op])
         if not arg.startswith('0x'):
             continue
         cand_hash = int(arg, 16)
-        if cand_hash in DLL_FUNC_HASHES:
-            name = DLL_FUNC_HASHES[cand_hash]
+        if cand_hash in IMPORT_HASHES_ROR13:
+            name = IMPORT_HASHES_ROR13[cand_hash]
             seg.setInlineCommentAtAddress(addr, name)
 
 
