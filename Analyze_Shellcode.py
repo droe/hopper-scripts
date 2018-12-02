@@ -15,8 +15,12 @@
 # 2) Modify -> Disassemble whole segment
 # 3) Run this script
 #
-# The script asks if it should mark everything unknown and disassemble.
-# Press cancel if you made manual adjustments that you want to keep.
+# The script asks if it should mark everything unknown and disassemble before
+# walking all the disassembled instructions, looking for the above patterns.
+# Except for this optional initial disassembling pass, the script does not
+# attempt to change code to data and vice-versa.  For more tricky shellcode,
+# typical workflow is to fix disassembly manually where needed and let the
+# script run again to do the annotations.
 
 # TODO - add more known code blocks
 # TODO - add hashes for other hashing methods than Metasploit ROR 13
