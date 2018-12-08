@@ -53,6 +53,7 @@ IMPORT_HASHES_ROR13 = {
     0x799AACC6: "kernel32.dll!CreateRemoteThread",
     0x7802F749: "kernel32.dll!GetProcAddress",
     0x601D8708: "kernel32.dll!WaitForSingleObject",
+    0xE035F044: "kernel32.dll!Sleep",
     0x876F8B31: "kernel32.dll!WinExec",
     0x56A2B5F0: "kernel32.dll!ExitProcess",
     0x160D6838: "kernel32.dll!CreateThread",
@@ -61,6 +62,7 @@ IMPORT_HASHES_ROR13 = {
     0xD58F7045: "kernel32.dll!CreateNamedPipeW",
     0xE27D6F28: "kernel32.dll!ConnectNamedPipe",
     0xFCDDFAC0: "kernel32.dll!DisconnectNamedPipe",
+    0xCC8E00F4: "kernel32.dll!lstrlenA",
     0x6F721347: "ntdll.dll!RtlExitUserThread",
     0x23E38427: "advapi32.dll!RevertToSelf",
     0xCB72F7FA: "advapi32.dll!StartServiceCtrlDispatcherA",
@@ -96,6 +98,7 @@ IMPORT_HASHES_ROR13 = {
     0x91BB5895: "winhttp.dll!WinHttpSendRequest",
     0x709D8805: "winhttp.dll!WinHttpReceiveResponse",
     0x7E24296C: "winhttp.dll!WinHttpReadData",
+    0xC99CC96A: "dnsapi.dll!DnsQuery_A",
     0x2664BDDB: "pstorec.dll!PStoreCreateInstance",
 }
 
