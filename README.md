@@ -22,6 +22,8 @@ potentially useful to others.
     clipboard, in yara syntax, with assembly code in comments
 -   **File Offset Here** - add a prefix comment with the file offset at the
     current cursor position
+-   **Fix Imports By Ordinal** - rename labels of imported functions by ordinal
+    to their actual names
 
 ## Support
 
