@@ -14,11 +14,11 @@ endif
 all:
 
 install: $(SCRIPTS)
-	ln -sf "/Users/$(USER)/$(SCRIPTS_DIR)" Scripts
+	ln -sf "$(HOME)/$(SCRIPTS_DIR)" Scripts
 	cp $^ Scripts/
 
 diff: $(SCRIPTS)
-	ln -sf "/Users/$(USER)/$(SCRIPTS_DIR)" Scripts
+	ln -sf "$(HOME)/$(SCRIPTS_DIR)" Scripts
 	@for f in $^; do \
 		out=`diff -u $$f Scripts/$$f`; \
 		size=`echo "$$out"|wc -l`; \
