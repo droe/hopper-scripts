@@ -6,6 +6,9 @@ endif
 ifeq ($(shell uname),Linux)
 SCRIPTS_DIR=	GNUstep/Library/ApplicationSupport/Hopper/Scripts
 endif
+ifeq ($(SCRIPTS_DIR),)
+$(error $(shell uname) unsupported)
+endif
 
 
 all:
