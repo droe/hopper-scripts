@@ -15,7 +15,7 @@ import re
 if os.uname()[0] == 'Darwin':
     CMD = 'pbcopy'
 elif os.uname()[0] == 'Linux':
-    CMD = 'xclip -selection c'
+    CMD = 'xsel -b'
 else:
     raise NotImplementedError("%s not supported" % os.uname()[0])
 
