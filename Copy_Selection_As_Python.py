@@ -6,15 +6,25 @@
 # Copy the current selection to clipboard in python syntax
 
 
+import os
 import traceback
 import subprocess
 import re
 
 
+if os.uname()[0] == 'Darwin':
+    CMD = 'pbcopy'
+elif os.uname()[0] == 'Linux':
+    CMD = 'xclip -selection c'
+else:
+    raise NotImplementedError("%s not supported" % os.uname()[0])
+
+
 def pbcopy(s):
-    proc = subprocess.Popen('pbcopy',
+    proc = subprocess.Popen(CMD,
                             env={'LANG': 'en_US.UTF-8'},
-                            stdin=subprocess.PIPE)
+                            stdin=subprocess.PIPE,
+                            shell=True)
     proc.communicate(s.encode('utf-8'))
 
 
