@@ -2,6 +2,7 @@
 
 # «Copy Selection As Python» for Hopper 4
 # Copyright (c) 2018, Daniel Roethlisberger <daniel@roe.ch>
+# https://github.com/droe/hopper-scripts
 #
 # Copy the current selection to clipboard in python syntax
 
@@ -38,7 +39,7 @@ def bytes2hex(b):
     return ''.join(x.encode('hex') for x in b)
 
 
-class InstructionReader:
+class InstructionReader(object):
     def __init__(self, seg, addr, size):
         self._seg = seg
         self._addr = addr

@@ -2,6 +2,7 @@
 
 # «Analyze Shellcode» for Hopper 4
 # Copyright (c) 2018, Daniel Roethlisberger <daniel@roe.ch>
+# https://github.com/droe/hopper-scripts
 #
 # This aims at detecting and annotating typical shellcode patterns in Hopper:
 # - Known code blocks

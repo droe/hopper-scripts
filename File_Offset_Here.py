@@ -2,6 +2,7 @@
 
 # «File Offset Here» for Hopper 4
 # Copyright (c) 2018, Daniel Roethlisberger <daniel@roe.ch>
+# https://github.com/droe/hopper-scripts
 #
 # Write the file offset at the cursor position into a prefix comment
 

@@ -2,6 +2,7 @@
 
 # «Fix Imports By Ordinal» for Hopper 4
 # Copyright (c) 2018, Daniel Roethlisberger <daniel@roe.ch>
+# https://github.com/droe/hopper-scripts
 #
 # Rename imports by ordinal to their actual names.
 #

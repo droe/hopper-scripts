@@ -10,7 +10,10 @@ Copyright (C) 2018, [Daniel Roethlisberger](//daniel.roe.ch/).
 ## Description
 
 Some of my Hopper scripts that are polished and general enough to be
-potentially useful to others.
+potentially useful to others.  Each of them is self-contained and should run on
+latest Hopper 4 on macOS and Linux.  Since Hopper still uses ancient legacy
+Python 2 for scripting and the Hopper API is very far from pythonic, do not
+expect beautiful code.
 
 ## Scripts
 
