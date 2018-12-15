@@ -34,19 +34,45 @@ def render(binary, assembly):
     return "    %-36s# %s" % (pattern, assembly)
 
 
+def bytes2hex(b):
+    return ''.join(x.encode('hex') for x in b)
+
+
+class InstructionReader:
+    def __init__(self, seg, addr, size):
+        self._seg = seg
+        self._addr = addr
+        self._size = size
+        self._buf = seg.readBytes(addr, size)
+
+    def yield_instructions(self, pos):
+        while pos < self._addr + self._size:
+            if self._seg.getTypeAtAddress(pos) not in (Segment.TYPE_CODE,
+                                                       Segment.TYPE_PROCEDURE):
+                pos += 1
+                continue
+            ins = self._seg.getInstructionAtAddress(pos)
+            inslen = ins.getInstructionLength()
+
+            inshex = bytes2hex(self._seg.readBytes(pos, inslen))
+            insargs = []
+            for i in range(ins.getArgumentCount()):
+                insargs.append(ins.getRawArgument(i))
+            insasm = "%-8s %s" % (ins.getInstructionString(),
+                                  ', '.join(insargs))
+            yield pos, inslen, inshex, insasm
+            pos += ins.getInstructionLength()
+
+
 def main():
     doc = Document.getCurrentDocument()
     seg = doc.getCurrentSegment()
     sel = doc.getSelectionAddressRange()
 
     out = []
-    pattern = re.compile('^\\S+\\s+(\\S+)\\s+(.*?)\\s*(?:;.*)?$')
-    for line in doc.getRawSelectedLines():
-        m = pattern.match(line)
-        if not m:
-            print(" *** skipping line: %s" % line)
-            continue
-        out.append(render(m.group(1), m.group(2)))
+    ir = InstructionReader(seg, sel[0], sel[1] - sel[0])
+    for pos, inslen, inshex, insasm in ir.yield_instructions(sel[0]):
+        out.append(render(inshex, insasm))
     pbcopy('\n'.join(out + ['']))
 
 
