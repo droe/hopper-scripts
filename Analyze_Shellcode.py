@@ -167,44 +167,6 @@ https://github.com/rapid7/metasploit-framework/blob/master/external/source/shell
         0x48, 0x8B, 0x12,               # mov       rdx, qword [rdx]
         0xE9, 0x4F, 0xFF, 0xFF, 0xFF,   # jmp       <offset>
     ),
-}, {
-    'name': 'decrypt_stub',
-    'proc': False,
-    'comment': """
-Cobalt Strike x64 decryption stub, used to encapsulate Beacon
-Following the stub is a 4 byte key and 4 byte length
-Decryption is 4-byte XOR with plaintext feedback
-""",
-    'start': (
-        0xEB, 0x33,                     # jmp        0x103a
-        0x5D,                           # pop        rbp
-        0x8B, 0x45, 0x00,               # mov        eax, dword [rbp]
-        0x48, 0x83, 0xC5, 0x04,         # add        rbp, 0x4
-        0x8B, 0x4D, 0x00,               # mov        ecx, dword [rbp]
-        0x31, 0xC1,                     # xor        ecx, eax
-        0x48, 0x83, 0xC5, 0x04,         # add        rbp, 0x4
-        0x55,                           # push       rbp
-        0x8B, 0x55, 0x00,               # mov        edx, dword [rbp]
-        0x31, 0xC2,                     # xor        edx, eax
-        0x89, 0x55, 0x00,               # mov        dword [rbp], edx
-        0x31, 0xD0,                     # xor        eax, edx
-        0x48, 0x83, 0xC5, 0x04,         # add        rbp, 0x4
-        0x83, 0xE9, 0x04,               # sub        ecx, 0x4
-        0x31, 0xD2,                     # xor        edx, edx
-        0x39, 0xD1,                     # cmp        ecx, edx
-        0x74, 0x02,                     # je         0x1032
-        0xEB, 0xE7,                     # jmp        0x1019
-        0x58,                           # pop        rax
-        0xFC,                           # cld
-        0x48, 0x83, 0xE4, 0xF0,         # and        rsp, 0xfffffffffffffff0
-        0xFF, 0xD0,                     # call       rax
-        0xE8, 0xC8, 0xFF, 0xFF, 0xFF,   # call       0x1007
-    ),
-    'offsets': (
-        (0x3A+0, 'payload_key'),
-        (0x3A+4, 'payload_size'),
-        (0x3A+8, 'payload_data'),
-    )
 },
 )
 
