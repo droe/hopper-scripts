@@ -4,7 +4,8 @@
 # Copyright (c) 2018, Daniel Roethlisberger <daniel@roe.ch>
 # https://github.com/droe/hopper-scripts
 #
-# Rename imports by ordinal to their actual names.
+# Rename imports by ordinal to their actual names.  Operates on the selection,
+# or on all segments if no selection was made.
 #
 # Unfortunately, Hopper does not currently allow full-featured access to
 # external definitions from scripts.  Best we can do is rename the labels, but
@@ -236,41 +237,54 @@ def selection_is_single_instruction(doc, seg, sel):
                        seg.stringForType(typ), typ))
 
 
+class Segments:
+    def __init__(self, doc):
+        self._doc = doc
+
+    def __iter__(self):
+        segments = []
+        for i in range(self._doc.getSegmentCount()):
+            segments.append(self._doc.getSegment(i))
+        return iter(segments)
+
+
+class SegmentRanges:
+    def __init__(self, doc):
+        self._segments = Segments(doc)
+
+    def __iter__(self):
+        ranges = []
+        for seg in self._segments:
+            ranges.append((seg.getStartingAddress(), seg.getLength()))
+        return iter(ranges)
+
+
 def main():
     doc = Document.getCurrentDocument()
     seg = doc.getCurrentSegment()
     sel = doc.getSelectionAddressRange()
 
-    print("===> Walking current segment or selection")
-
     if selection_is_single_instruction(doc, seg, sel):
-        print("operating on current segment")
-        range_addr = seg.getStartingAddress()
-        range_size = seg.getLength()
+        ranges = SegmentRanges(doc)
     else:
-        print("operating on current selection")
-        range_addr = sel[0]
-        range_size = sel[1] - sel[0]
-
-    print("analyzing range %s:%s" % (hexaddr(range_addr),
-                                     hexaddr(range_addr + range_size)))
-
+        ranges = ((sel[0], sel[1] - sel[0]), )
 
     pattern = re.compile(r'(imp|j)_ordinal_([A-Za-z0-9_]+).[Dd][Ll][Ll]_([0-9]+)')
-    for addr in range(range_addr, range_addr + range_size):
-        name = doc.getNameAtAddress(addr)
-        if name == None:
-            continue
-        m = pattern.match(name)
-        if not m:
-            continue
-        prefix = m.group(1) + '_'
-        libname = m.group(2).lower() + '.dll'
-        ordinal = int(m.group(3))
-        if libname in IMPORTS and ordinal in IMPORTS[libname]:
-            symname = prefix + IMPORTS[libname][ordinal]
-            print("renaming %s %s to %s" % (hexaddr(addr), name, symname))
-            doc.setNameAtAddress(addr, symname)
+    for range_addr, range_size in ranges:
+        for addr in range(range_addr, range_addr + range_size):
+            name = doc.getNameAtAddress(addr)
+            if name == None:
+                continue
+            m = pattern.match(name)
+            if not m:
+                continue
+            prefix = m.group(1) + '_'
+            libname = m.group(2).lower() + '.dll'
+            ordinal = int(m.group(3))
+            if libname in IMPORTS and ordinal in IMPORTS[libname]:
+                symname = prefix + IMPORTS[libname][ordinal]
+                print("renaming %s %s to %s" % (hexaddr(addr), name, symname))
+                doc.setNameAtAddress(addr, symname)
 
 
 if __name__ == '__main__':
