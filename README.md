@@ -19,6 +19,8 @@ expect beautiful code.
 
 -   **Analyze Shellcode** - detect and annotate typical shellcode patterns:
     known code blocks, call import by hash, and call/pop reg
+-   **Annotate Stack Strings in Selection** - annotate plaintext and
+    XOR-encrypted stack strings
 -   **Copy Selection As Python** - copy bytes in current selection to the
     clipboard, in python syntax, with assembly code in comments
 -   **Copy Selection As Yara** - copy bytes in current selection to the
