@@ -47,21 +47,24 @@ class InstructionReader(object):
 
     def yield_instructions(self, pos):
         while pos < self._addr + self._size:
-            if self._seg.getTypeAtAddress(pos) not in (Segment.TYPE_CODE,
-                                                       Segment.TYPE_PROCEDURE):
-                pos += 1
-                continue
-            ins = self._seg.getInstructionAtAddress(pos)
-            inslen = ins.getInstructionLength()
-
-            inshex = bytes2hex(self._seg.readBytes(pos, inslen))
-            insargs = []
-            for i in range(ins.getArgumentCount()):
-                insargs.append(ins.getRawArgument(i))
-            insasm = "%-8s %s" % (ins.getInstructionString(),
-                                  ', '.join(insargs))
+            if self._seg.getTypeAtAddress(pos) in (Segment.TYPE_CODE,
+                                                   Segment.TYPE_PROCEDURE):
+                ins = self._seg.getInstructionAtAddress(pos)
+                inslen = ins.getInstructionLength()
+                inshex = bytes2hex(self._seg.readBytes(pos, inslen))
+                insop = ins.getInstructionString()
+                insargs = []
+                for i in range(ins.getArgumentCount()):
+                    insargs.append(ins.getRawArgument(i))
+                insargs = ', '.join(insargs)
+            else:
+                inslen = 1
+                inshex = bytes2hex(self._seg.readBytes(pos, inslen))
+                insop = 'db'
+                insargs = "0x%s" % inshex
+            insasm = "%-8s %s" % (insop, insargs)
             yield pos, inslen, inshex, insasm
-            pos += ins.getInstructionLength()
+            pos += inslen
 
 
 def main():
