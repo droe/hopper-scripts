@@ -1,4 +1,5 @@
 SCRIPTS=	$(wildcard *.py)
+SYMLINK=	Scripts
 
 ifeq ($(shell uname),Darwin)
 SCRIPTS_DIR=	Library/Application Support/Hopper/Scripts
@@ -14,13 +15,13 @@ endif
 all:
 
 install: $(SCRIPTS)
-	ln -sf "$(HOME)/$(SCRIPTS_DIR)" Scripts
-	cp $^ Scripts/
+	test -e $(SYMLINK) || ln -sf "$(HOME)/$(SCRIPTS_DIR)" $(SYMLINK)
+	cp $^ $(SYMLINK)/
 
 diff: $(SCRIPTS)
-	ln -sf "$(HOME)/$(SCRIPTS_DIR)" Scripts
+	test -e $(SYMLINK) || ln -sf "$(HOME)/$(SCRIPTS_DIR)" $(SYMLINK)
 	@for f in $^; do \
-		out=`diff -u $$f Scripts/$$f`; \
+		out=`diff -u $$f $(SYMLINK)/$$f`; \
 		size=`echo "$$out"|wc -l`; \
 		echo "$$out"|{ test $$size -gt `tput lines` && less || cat; }; \
 	done
