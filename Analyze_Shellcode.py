@@ -23,85 +23,80 @@
 # typical workflow is to fix disassembly manually where needed and let the
 # script run again to do the annotations.
 
-# TODO - add more known code blocks
-# TODO - add hashes for other hashing methods than Metasploit ROR 13
-# TODO - move hashes and known code blocks into external data file
-# TODO - improve performance using newer Hopper API functions
-
 
 import traceback
 
 
-IMPORT_HASHES_ROR13 = {
-    0x0726774C: "kernel32.dll!LoadLibraryA",
-    0x9DBD95A6: "kernel32.dll!GetVersion",
-    0x5DE2C5AA: "kernel32.dll!GetLastError",
-    0xEA320EFE: "kernel32.dll!SetUnhandledExceptionFilter",
-    0x4FDAF6DA: "kernel32.dll!CreateFileA",
-    0x13DD2ED7: "kernel32.dll!DeleteFileA",
-    0xBB5F9EAD: "kernel32.dll!ReadFile",
-    0xC2911CE4: "kernel32.dll!ReadFileEx",
-    0x5BAE572D: "kernel32.dll!WriteFile",
-    0xD63F3D0C: "kernel32.dll!WriteFileEx",
-    0x35269F1D: "kernel32.dll!SetEvent",
-    0xE449F330: "kernel32.dll!GetTempPathA",
-    0x528796C6: "kernel32.dll!CloseHandle",
-    0xE553A458: "kernel32.dll!VirtualAlloc",
-    0x3F9287AE: "kernel32.dll!VirtualAllocEx",
-    0x300F2F0B: "kernel32.dll!VirtualFree",
-    0x863FCC79: "kernel32.dll!CreateProcessA",
-    0xE7BDD8C5: "kernel32.dll!WriteProcessMemory",
-    0x799AACC6: "kernel32.dll!CreateRemoteThread",
-    0x7802F749: "kernel32.dll!GetProcAddress",
-    0x601D8708: "kernel32.dll!WaitForSingleObject",
-    0xE035F044: "kernel32.dll!Sleep",
-    0x876F8B31: "kernel32.dll!WinExec",
-    0x56A2B5F0: "kernel32.dll!ExitProcess",
-    0x160D6838: "kernel32.dll!CreateThread",
-    0x0A2A1DE0: "kernel32.dll!ExitThread",
-    0xD4DF7045: "kernel32.dll!CreateNamedPipeA",
-    0xD58F7045: "kernel32.dll!CreateNamedPipeW",
-    0xE27D6F28: "kernel32.dll!ConnectNamedPipe",
-    0xFCDDFAC0: "kernel32.dll!DisconnectNamedPipe",
-    0xCC8E00F4: "kernel32.dll!lstrlenA",
-    0x6F721347: "ntdll.dll!RtlExitUserThread",
-    0x23E38427: "advapi32.dll!RevertToSelf",
-    0xCB72F7FA: "advapi32.dll!StartServiceCtrlDispatcherA",
-    0x5244AA0B: "advapi32.dll!RegisterServiceCtrlHandlerExA",
-    0x7D3755C6: "advapi32.dll!SetServiceStatus",
-    0x7636F067: "advapi32.dll!OpenSCManagerA",
-    0x404B2856: "advapi32.dll!OpenServiceA",
-    0xED35B087: "advapi32.dll!ChangeServiceConfig2A",
-    0xAD77EADE: "advapi32.dll!CloseServiceHandle",
-    0x315E2145: "user32.dll!GetDesktopWindow",
-    0x006B8029: "ws2_32.dll!WSAStartup",
-    0xE0DF0FEA: "ws2_32.dll!WSASocketA",
-    0x33BEAC94: "ws2_32.dll!WSAAccept",
-    0x6737DBC2: "ws2_32.dll!bind",
-    0xFF38E9B7: "ws2_32.dll!listen",
-    0xE13BEC74: "ws2_32.dll!accept",
-    0x614D6E75: "ws2_32.dll!closesocket",
-    0x6174A599: "ws2_32.dll!connect",
-    0x5FC8D902: "ws2_32.dll!recv",
-    0x5F38EBC2: "ws2_32.dll!send",
-    0x2977A2F1: "ws2_32.dll!setsockopt",
-    0x803428A9: "ws2_32.dll!gethostbyname",
-    0xA779563A: "wininet.dll!InternetOpenA",
-    0xC69F8957: "wininet.dll!InternetConnectA",
-    0x3B2E55EB: "wininet.dll!HttpOpenRequestA",
-    0x7B18062D: "wininet.dll!HttpSendRequestA",
-    0x0BE057B7: "wininet.dll!InternetErrorDlg",
-    0xE2899612: "wininet.dll!InternetReadFile",
-    0x869E4675: "wininet.dll!InternetSetOptionA",
-    0xBB9D1F04: "winhttp.dll!WinHttpOpen",
-    0xC21E9B46: "winhttp.dll!WinHttpConnect",
-    0x5BB31098: "winhttp.dll!WinHttpOpenRequest",
-    0x91BB5895: "winhttp.dll!WinHttpSendRequest",
-    0x709D8805: "winhttp.dll!WinHttpReceiveResponse",
-    0x7E24296C: "winhttp.dll!WinHttpReadData",
-    0xC99CC96A: "dnsapi.dll!DnsQuery_A",
-    0x2664BDDB: "pstorec.dll!PStoreCreateInstance",
-}
+IMPORTS = (
+    "kernel32.dll!LoadLibraryA",
+    "kernel32.dll!GetVersion",
+    "kernel32.dll!GetLastError",
+    "kernel32.dll!SetUnhandledExceptionFilter",
+    "kernel32.dll!CreateFileA",
+    "kernel32.dll!DeleteFileA",
+    "kernel32.dll!ReadFile",
+    "kernel32.dll!ReadFileEx",
+    "kernel32.dll!WriteFile",
+    "kernel32.dll!WriteFileEx",
+    "kernel32.dll!SetEvent",
+    "kernel32.dll!GetTempPathA",
+    "kernel32.dll!CloseHandle",
+    "kernel32.dll!VirtualAlloc",
+    "kernel32.dll!VirtualAllocEx",
+    "kernel32.dll!VirtualFree",
+    "kernel32.dll!CreateProcessA",
+    "kernel32.dll!WriteProcessMemory",
+    "kernel32.dll!CreateRemoteThread",
+    "kernel32.dll!GetProcAddress",
+    "kernel32.dll!WaitForSingleObject",
+    "kernel32.dll!Sleep",
+    "kernel32.dll!WinExec",
+    "kernel32.dll!ExitProcess",
+    "kernel32.dll!CreateThread",
+    "kernel32.dll!ExitThread",
+    "kernel32.dll!CreateNamedPipeA",
+    "kernel32.dll!CreateNamedPipeW",
+    "kernel32.dll!ConnectNamedPipe",
+    "kernel32.dll!DisconnectNamedPipe",
+    "kernel32.dll!lstrlenA",
+    "ntdll.dll!RtlExitUserThread",
+    "advapi32.dll!RevertToSelf",
+    "advapi32.dll!StartServiceCtrlDispatcherA",
+    "advapi32.dll!RegisterServiceCtrlHandlerExA",
+    "advapi32.dll!SetServiceStatus",
+    "advapi32.dll!OpenSCManagerA",
+    "advapi32.dll!OpenServiceA",
+    "advapi32.dll!ChangeServiceConfig2A",
+    "advapi32.dll!CloseServiceHandle",
+    "user32.dll!GetDesktopWindow",
+    "ws2_32.dll!WSAStartup",
+    "ws2_32.dll!WSASocketA",
+    "ws2_32.dll!WSAAccept",
+    "ws2_32.dll!bind",
+    "ws2_32.dll!listen",
+    "ws2_32.dll!accept",
+    "ws2_32.dll!closesocket",
+    "ws2_32.dll!connect",
+    "ws2_32.dll!recv",
+    "ws2_32.dll!send",
+    "ws2_32.dll!setsockopt",
+    "ws2_32.dll!gethostbyname",
+    "wininet.dll!InternetOpenA",
+    "wininet.dll!InternetConnectA",
+    "wininet.dll!HttpOpenRequestA",
+    "wininet.dll!HttpSendRequestA",
+    "wininet.dll!InternetErrorDlg",
+    "wininet.dll!InternetReadFile",
+    "wininet.dll!InternetSetOptionA",
+    "winhttp.dll!WinHttpOpen",
+    "winhttp.dll!WinHttpConnect",
+    "winhttp.dll!WinHttpOpenRequest",
+    "winhttp.dll!WinHttpSendRequest",
+    "winhttp.dll!WinHttpReceiveResponse",
+    "winhttp.dll!WinHttpReadData",
+    "dnsapi.dll!DnsQuery_A",
+    "pstorec.dll!PStoreCreateInstance",
+)
 
 
 # First match per start address wins.
@@ -169,6 +164,63 @@ https://github.com/rapid7/metasploit-framework/blob/master/external/source/shell
     ),
 },
 )
+
+
+class ImportHashes:
+    CHECK = 'kernel32.dll!LoadLibraryA'
+    METHODS = ('msf', )
+    CHECKSUMS = {
+        'msf': 0x0726774C,
+    }
+
+    def __init__(self):
+        self._hashmaps = {}
+        for which in self.METHODS:
+            #print('Method %s' % which)
+            self._hashmaps[which] = {}
+            for spec in IMPORTS:
+                m, f = spec.split('!')
+                h = self._hash(which, m, f)
+                if not h in self._hashmaps[which]:
+                    #print('Adding 0x%08x %s' % (h, spec))
+                    self._hashmaps[which][h] = spec
+            assert(self.CHECKSUMS[which] in self._hashmaps[which])
+            assert(self._hashmaps[which][self.CHECKSUMS[which]] == self.CHECK)
+
+    def __contains__(self, x):
+        return any([x in self._hashmaps[t] for t in self._hashmaps])
+
+    def __getitem__(self, k):
+        # Currently returns the first match; should improve this to handle
+        # collisions between different hashing methods in a more useful way
+        for t in self._hashmaps:
+            if k in self._hashmaps[t]:
+                return self._hashmaps[t][k]
+        raise KeyError(k)
+
+    def _ror32(self, x, bits):
+        return (x >> bits | x << (32 - bits)) & 0xFFFFFFFF
+
+    def _wide(self, s):
+        out = []
+        for c in s:
+            out.append(c)
+            out.append("\x00")
+        return ''.join(out)
+
+    def _hash_ror(self, module, function, bits):
+        mhash = 0
+        fhash = 0
+        for c in self._wide(module + "\x00"):
+            mhash = self._ror32(mhash, bits) + ord(c)
+        for c in function + "\x00":
+            fhash = self._ror32(fhash, bits) + ord(c)
+        return (mhash + fhash) & 0xFFFFFFFF
+
+    def _hash(self, which, module, function):
+        if which == 'msf':
+            return self._hash_ror(module.upper(), function, 13)
+        raise NotImplementedError(which)
 
 
 def hexaddr(addr):
@@ -343,6 +395,7 @@ def main():
 
 
     # annotate known import hashes
+    hashes = ImportHashes()
     hash_ops = {
         # op, arg index
         'push':     0,
@@ -357,8 +410,8 @@ def main():
         if not arg.startswith('0x'):
             continue
         cand_hash = int(arg, 16)
-        if cand_hash in IMPORT_HASHES_ROR13:
-            name = IMPORT_HASHES_ROR13[cand_hash]
+        if cand_hash in hashes:
+            name = hashes[cand_hash]
             seg.setInlineCommentAtAddress(addr, name)
 
 
