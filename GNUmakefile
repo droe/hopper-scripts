@@ -1,5 +1,7 @@
-SCRIPTS=	$(wildcard *.py)
-SYMLINK=	Scripts
+YARA=		$(shell which yara)
+ifeq ($(YARA),)
+$(error yara not found in PATH)
+endif
 
 ifeq ($(shell uname),Darwin)
 SCRIPTS_DIR=	Library/Application Support/Hopper/Scripts
@@ -11,14 +13,27 @@ ifeq ($(SCRIPTS_DIR),)
 $(error $(shell uname) unsupported)
 endif
 
+SCRIPTS=	$(wildcard *.py)
+LIBS=		$(wildcard api/*.py)
+SYMLINK=	Scripts
+
 
 all:
 
-install: $(SCRIPTS)
+install: install-api install-scripts
+
+install-api: $(LIBS)
+	test -e $(SYMLINK) || ln -sf "$(HOME)/$(SCRIPTS_DIR)" $(SYMLINK)
+	mkdir -p $(SYMLINK)/api
+	cp $^ $(SYMLINK)/api/
+	rm -f $(SYMLINK)/api/*.pyc
+
+install-scripts: $(SCRIPTS)
 	test -e $(SYMLINK) || ln -sf "$(HOME)/$(SCRIPTS_DIR)" $(SYMLINK)
 	cp $^ $(SYMLINK)/
+	sed -i '' -e s,@@yara@@,$(YARA),g $(SYMLINK)/*Yara*.py
 
-diff: $(SCRIPTS)
+diff: $(SCRIPTS) $(LIBS)
 	test -e $(SYMLINK) || ln -sf "$(HOME)/$(SCRIPTS_DIR)" $(SYMLINK)
 	@for f in $^; do \
 		out=`diff -u $$f $(SYMLINK)/$$f`; \
@@ -26,4 +41,4 @@ diff: $(SCRIPTS)
 		echo "$$out"|{ test $$size -gt `tput lines` && less || cat; }; \
 	done
 
-.PHONY: all install diff
+.PHONY: all install install-api install-scripts diff

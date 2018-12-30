@@ -8,6 +8,8 @@
 # form.  Supports XOR decryption using a single or multi-byte key and no
 # feedback.
 
+# TODO convert to new API
+
 
 import traceback
 import binascii

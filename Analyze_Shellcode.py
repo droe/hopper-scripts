@@ -23,6 +23,8 @@
 # typical workflow is to fix disassembly manually where needed and let the
 # script run again to do the annotations.
 
+# TODO convert to new API
+
 
 import traceback
 

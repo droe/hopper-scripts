@@ -6,6 +6,8 @@
 #
 # Copy the current selection to clipboard in yara syntax
 
+# TODO convert to new API
+
 
 import os
 import traceback

@@ -10,10 +10,9 @@ Copyright (C) 2018, [Daniel Roethlisberger](//daniel.roe.ch/).
 ## Description
 
 Some of my Hopper scripts that are polished and general enough to be
-potentially useful to others.  Each of them is self-contained and should run on
-latest Hopper 4 on macOS and Linux.  Since Hopper still uses ancient legacy
-Python 2 for scripting and the Hopper API is very far from pythonic, do not
-expect beautiful code.
+potentially useful to others.  They should run on latest Hopper 4 on macOS and
+Linux.  Some of the scripts use a nicer wrapper API around the strictly
+procedural Hopper python API, otherwise the scripts are self-contained.
 
 ## Scripts
 
@@ -21,6 +20,9 @@ expect beautiful code.
     known code blocks, call import by hash, and call/pop reg
 -   **Annotate Stack Strings in Selection** - annotate plaintext and
     XOR-encrypted stack strings
+-   **Annotate Yara Matches** - apply a set of yara rules to the currently
+    loaded document and annotate a summary of matching rules as well as each
+    string occurence for matching rules
 -   **Copy Selection As Python** - copy bytes in current selection to the
     clipboard, in python syntax, with assembly code in comments
 -   **Copy Selection As Yara** - copy bytes in current selection to the

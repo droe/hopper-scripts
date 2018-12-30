@@ -6,6 +6,8 @@
 #
 # Copy the current selection to clipboard in python syntax
 
+# TODO convert to new API
+
 
 import os
 import traceback

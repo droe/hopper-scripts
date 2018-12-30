@@ -12,6 +12,8 @@
 # that will result in a different user experience than if the import would have
 # been handled by Hopper by name.
 
+# TODO convert to new API
+
 
 import traceback
 import re
