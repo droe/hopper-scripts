@@ -26,7 +26,7 @@ class APIClipboard:
         if uname in self.CMDMAP:
             self._cmd_copy, self._cmd_paste = self.CMDMAP[uname]
         else:
-            raise NotImplementedError("%s not supported" % os.uname()[0])
+            raise NotImplementedError("%s not supported" % uname)
 
     def copy(self, s):
         proc = subprocess.Popen(self._cmd_copy,
@@ -40,7 +40,8 @@ class APIClipboard:
                                 env={'LANG': 'en_US.UTF-8'},
                                 stdout=subprocess.PIPE,
                                 shell=True)
-        return proc.communicate().decode('utf-8', errors='ignore')
+        out, err = proc.communicate()
+        return out.decode('utf-8', errors='ignore')
 
 
 class APIInstruction:
