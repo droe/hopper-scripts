@@ -88,6 +88,14 @@ class APIInstruction:
         else:
             return self._args
 
+    def arg(self, i):
+        if self._hins != None:
+            if i < 0 or i >= self._hins.getArgumentCount():
+                raise IndexError("arg index out of range")
+            return self._hins.getRawArgument(i)
+        else:
+            return None
+
 
 class APIDocument:
     def __init__(self, hdoc):
