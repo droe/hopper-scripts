@@ -34,6 +34,10 @@ class APIClipboard:
                                 stdin=subprocess.PIPE,
                                 shell=True)
         proc.communicate(s.encode('utf-8'))
+        if proc.returncode != 0:
+            msg = "%s failed with exit status %i" % (self._cmd_copy,
+                                                     proc.returncode)
+            raise RuntimeError(msg)
 
     def paste(self):
         proc = subprocess.Popen(self._cmd_paste,
@@ -41,6 +45,10 @@ class APIClipboard:
                                 stdout=subprocess.PIPE,
                                 shell=True)
         out, err = proc.communicate()
+        if proc.returncode != 0:
+            msg = "%s failed with exit status %i" % (self._cmd_paste,
+                                                     proc.returncode)
+            raise RuntimeError(msg)
         return out.decode('utf-8', errors='ignore')
 
 
