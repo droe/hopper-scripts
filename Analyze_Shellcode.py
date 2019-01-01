@@ -23,8 +23,6 @@
 # typical workflow is to fix disassembly manually where needed and let the
 # script run again to do the annotations.
 
-# TODO migrate InstructionReader to new API
-
 
 import api
 
@@ -225,22 +223,14 @@ class ImportHashes:
         raise NotImplementedError(which)
 
 
-class InstructionReader:
+class KnownBlocksHelper:
+    # XXX this works, but badly needs a rewrite
+
     def __init__(self, seg, addr, size):
         self._seg = seg
         self._addr = addr
         self._size = size
         self._buf = seg.readBytes(addr, size)
-
-    def yield_instructions(self, pos):
-        while pos < self._addr + self._size:
-            if self._seg.getTypeAtAddress(pos) not in (Segment.TYPE_CODE,
-                                                       Segment.TYPE_PROCEDURE):
-                pos += 1
-                continue
-            ins = self._seg.getInstructionAtAddress(pos)
-            yield pos, ins
-            pos += ins.getInstructionLength()
 
     def compare_bytes(self, pos, literals):
         if pos < self._addr or pos >= self._addr + self._size:
@@ -286,21 +276,22 @@ class InstructionReader:
                 yield block, start_addr, end_addr
                 matched_addrs.add(start_addr)
 
-    def first_stack_instruction(self, pos, n=16):
-        for addr, ins in self.yield_instructions(pos):
-            op = ins.getInstructionString()
-            if ins.isAConditionalJump() or ins.isAnInconditionalJump():
-                break
-            if op in ('hlt', 'int', 'enter', 'leave'):
-                break
-            if op.startswith('ret') or op.startswith('iret') or \
-               op.startswith('sys'):
-                break
-            if op.startswith('push') or op.startswith('pop'):
-                return addr, ins
-            if addr > pos + n:
-                break
-        return None, None
+
+def first_stack_instruction(where, pos, n=16):
+    for ins in where.instructions(pos):
+        op = ins.op
+        if ins.raw.isAConditionalJump() or ins.raw.isAnInconditionalJump():
+            break
+        if op in ('hlt', 'int', 'enter', 'leave'):
+            break
+        if op.startswith('ret') or op.startswith('iret') or \
+           op.startswith('sys'):
+            break
+        if op.startswith('push') or op.startswith('pop'):
+            return ins
+        if ins.addr > pos + n:
+            break
+    return None
 
 
 def main():
@@ -326,11 +317,10 @@ def main():
 
     print("analyzing range %x:%x" % (shellcode.start, shellcode.end))
 
-    reader = InstructionReader(seg.raw,
-                               shellcode.start, len(shellcode))
-
     # identify and mark known blocks
-    for block, start_addr, end_addr in reader.yield_known_blocks():
+    kbhelper = KnowhBlocksHelper(seg.raw,
+                                 shellcode.start, len(shellcode))
+    for block, start_addr, end_addr in kbhelper.yield_known_blocks():
         print("---> found known block '%s' at %x" % (block['name'],
                                                      start_addr))
         name = "%s_%x" % (block['name'], start_addr)
@@ -348,30 +338,30 @@ def main():
                 api.set_label(offset_addr, offset_name)
 
     # xref or annotate call, pop reg combo
-    for addr, ins in reader.yield_instructions(shellcode.start):
-        if ins.getInstructionString() != 'call':
+    for ins in shellcode.instructions():
+        if ins.op != 'call':
             continue
-        arg = ins.getRawArgument(0)
+        arg = ins.arg(0)
         if not arg.startswith('0x'):
             continue
         target_addr = int(arg, 16)
-        stackop_addr, stackop_ins = reader.first_stack_instruction(target_addr)
-        if stackop_ins == None or stackop_ins.getInstructionString() != 'pop':
+        stack_ins = first_stack_instruction(shellcode, target_addr)
+        if stack_ins == None or stack_ins.op != 'pop':
             continue
 
         if api.get_label(target_addr) == None:
             api.set_label(target_addr, "pop_retaddr_%x" % target_addr)
 
-        #reg = stackop_ins.getRawArgument(0)
+        #reg = stack_ins.arg(0)
         print("---> found call + pop retaddr combo at %x -> %x" % (
-            addr, target_addr))
+            ins.addr, target_addr))
 
-        loaded_addr = addr + ins.getInstructionLength()
+        loaded_addr = ins.addr + len(ins)
         if loaded_addr == shellcode.end:
             # Hopper silently ignores xrefs to EOF
-            api.set_icomment(stackop_addr, "end of shellcode")
+            api.set_icomment(stack_ins.addr, "end of shellcode")
         else:
-            api.add_reference(stackop_addr, loaded_addr)
+            api.add_reference(stack_ins.addr, loaded_addr)
             if api.get_label(loaded_addr) == None:
                 api.set_label(loaded_addr, "retaddr_%x" % loaded_addr)
 
@@ -384,17 +374,17 @@ def main():
         'mov':      1,
         'movabs':   1,
     }
-    for addr, ins in reader.yield_instructions(shellcode.start):
-        op = ins.getInstructionString()
+    for ins in shellcode.instructions():
+        op = ins.op
         if not op in hash_ops:
             continue
-        arg = ins.getRawArgument(hash_ops[op])
+        arg = ins.arg(hash_ops[op])
         if not arg.startswith('0x'):
             continue
         cand_hash = int(arg, 16)
         if cand_hash in hashes:
             name = hashes[cand_hash]
-            api.set_icomment(addr, name)
+            api.set_icomment(ins.addr, name)
 
 
 if __name__ == '__main__':
