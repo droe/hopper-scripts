@@ -398,5 +398,5 @@ def main():
 
 
 if __name__ == '__main__':
-    api.run(main, globals())
+    api.run(main)
 

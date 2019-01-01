@@ -9,8 +9,10 @@
 # resulting in less verbose and more readable scripts.
 
 
+import os
 import sys
 import traceback
+import __main__ as main
 
 
 class APIDocument:
@@ -206,15 +208,11 @@ def selection():
     return APISelection(document.raw)
 
 
-def run(script_main, script_globals_dict):
-    global Document
-    Document = script_globals_dict['Document']
-    global Segment
-    Segment = script_globals_dict['Segment']
+def run(script_main):
+    script_name = os.path.basename(main.__file__)
 
     # assumption: current document does not change during script runtime
-
-    hdoc = Document.getCurrentDocument()
+    hdoc = main.Document.getCurrentDocument()
     global document
     document = APIDocument(hdoc)
     global executable
@@ -223,7 +221,9 @@ def run(script_main, script_globals_dict):
     segments = APISegments(hdoc)
 
     try:
+        print("Executing %s" % script_name)
         script_main()
+        print("Completed %s" % script_name)
     except Exception as e:
         hdoc.message(str(e), ['Ok'])
         traceback.print_exc()
