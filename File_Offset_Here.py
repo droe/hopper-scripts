@@ -11,7 +11,7 @@ import api
 
 
 def main():
-    addr = api.selection.start
+    addr = api.selection().start
     offset = api.atoo(addr)
     comment = "File offset here: %x (%i)" % (offset, offset)
     api.add_comment(addr, comment)

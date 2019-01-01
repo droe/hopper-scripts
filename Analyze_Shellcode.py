@@ -23,10 +23,10 @@
 # typical workflow is to fix disassembly manually where needed and let the
 # script run again to do the annotations.
 
-# TODO convert to new API
+# TODO migrate InstructionReader to new API
 
 
-import traceback
+import api
 
 
 IMPORTS = (
@@ -225,19 +225,6 @@ class ImportHashes:
         raise NotImplementedError(which)
 
 
-def hexaddr(addr):
-    return "0x%x" % addr
-
-
-def selection_is_single_instruction(seg, sel):
-    typ = seg.getTypeAtAddress(sel[0])
-    if not typ in (Segment.TYPE_CODE, Segment.TYPE_PROCEDURE):
-        raise RuntimeError("Selection does not start with code!\n" +
-                           "Try disassembling first.")
-    ins = seg.getInstructionAtAddress(sel[0])
-    return sel[1] == sel[0] + ins.getInstructionLength()
-
-
 class InstructionReader:
     def __init__(self, seg, addr, size):
         self._seg = seg
@@ -317,58 +304,51 @@ class InstructionReader:
 
 
 def main():
-    doc = Document.getCurrentDocument()
-    seg = doc.getCurrentSegment()
-    sel = doc.getSelectionAddressRange()
+    print("Arch: %s" % api.executable.arch)
 
-    print("===> Analyzing shellcode")
-    if doc.is64Bits():
-        print("64bit")
-    else:
-        print("32bit")
+    seg = api.segments.current()
+    sel = api.selection()
 
-    ans = doc.message("Mark segment as undefined and disassemble?",
+    ans = api.message("Mark segment as undefined and disassemble?",
                       ['Cancel', 'No', 'Yes'])
     if ans == 0:
         return
     elif ans == 2:
-        seg.markRangeAsUndefined(seg.getStartingAddress(), seg.getLength())
-        seg.disassembleWholeSegment()
+        seg.mark_as_undefined()
+        seg.disassemble()
 
-    if selection_is_single_instruction(seg, sel):
+    if sel.is_single_instruction():
         print("operating on current segment")
-        range_addr = seg.getStartingAddress()
-        range_size = seg.getLength()
+        shellcode = seg
     else:
         print("operating on current selection")
-        range_addr = sel[0]
-        range_size = sel[1] - sel[0]
+        shellcode = sel
 
-    print("analyzing range %s:%s" % (hexaddr(range_addr),
-                                     hexaddr(range_addr + range_size)))
+    print("analyzing range %x:%x" % (shellcode.start, shellcode.end))
 
-    reader = InstructionReader(seg, range_addr, range_size)
+    reader = InstructionReader(seg.raw,
+                               shellcode.start, len(shellcode))
 
     # identify and mark known blocks
     for block, start_addr, end_addr in reader.yield_known_blocks():
-        print("---> found known block '%s' at %s" % (block['name'],
-                                                     hexaddr(start_addr)))
+        print("---> found known block '%s' at %x" % (block['name'],
+                                                     start_addr))
         name = "%s_%x" % (block['name'], start_addr)
-        seg.setNameAtAddress(start_addr, name)
+        api.set_label(start_addr, name)
         if 'proc' in block and block['proc']:
-            seg.markAsProcedure(start_addr)
+            api.mark_as_procedure(start_addr)
         if 'comment' in block and block['comment']:
-            seg.setCommentAtAddress(start_addr, block['comment'])
+            api.set_comment(start_addr, block['comment'])
         if 'inline_comment' in block and block['inline_comment']:
-            seg.setInlineCommentAtAddress(start_addr, block['inline_comment'])
+            api.set_icomment(start_addr, block['inline_comment'])
         if 'offsets' in block:
             for offset, offset_name in block['offsets']:
                 offset_addr = start_addr + offset
                 offset_name = "%s_%x" % (offset_name, offset_addr)
-                seg.setNameAtAddress(offset_addr, offset_name)
+                api.set_label(offset_addr, offset_name)
 
     # xref or annotate call, pop reg combo
-    for addr, ins in reader.yield_instructions(range_addr):
+    for addr, ins in reader.yield_instructions(shellcode.start):
         if ins.getInstructionString() != 'call':
             continue
         arg = ins.getRawArgument(0)
@@ -379,21 +359,21 @@ def main():
         if stackop_ins == None or stackop_ins.getInstructionString() != 'pop':
             continue
 
-        if seg.getNameAtAddress(target_addr) == None:
-            seg.setNameAtAddress(target_addr, "pop_retaddr_%x" % target_addr)
+        if api.get_label(target_addr) == None:
+            api.set_label(target_addr, "pop_retaddr_%x" % target_addr)
 
         #reg = stackop_ins.getRawArgument(0)
-        print("---> found call + pop retaddr combo at %s -> %s" % (
-            hexaddr(addr), hexaddr(target_addr)))
+        print("---> found call + pop retaddr combo at %x -> %x" % (
+            addr, target_addr))
 
         loaded_addr = addr + ins.getInstructionLength()
-        if loaded_addr == range_addr + range_size:
+        if loaded_addr == shellcode.end:
             # Hopper silently ignores xrefs to EOF
-            seg.setInlineCommentAtAddress(stackop_addr, "end of shellcode")
+            api.set_icomment(stackop_addr, "end of shellcode")
         else:
-            seg.addReference(stackop_addr, loaded_addr)
-            if seg.getNameAtAddress(loaded_addr) == None:
-                seg.setNameAtAddress(loaded_addr, "retaddr_%x" % loaded_addr)
+            api.add_reference(stackop_addr, loaded_addr)
+            if api.get_label(loaded_addr) == None:
+                api.set_label(loaded_addr, "retaddr_%x" % loaded_addr)
 
 
     # annotate known import hashes
@@ -404,7 +384,7 @@ def main():
         'mov':      1,
         'movabs':   1,
     }
-    for addr, ins in reader.yield_instructions(range_addr):
+    for addr, ins in reader.yield_instructions(shellcode.start):
         op = ins.getInstructionString()
         if not op in hash_ops:
             continue
@@ -414,13 +394,9 @@ def main():
         cand_hash = int(arg, 16)
         if cand_hash in hashes:
             name = hashes[cand_hash]
-            seg.setInlineCommentAtAddress(addr, name)
+            api.set_icomment(addr, name)
 
 
 if __name__ == '__main__':
-    try:
-        main()
-    except Exception as e:
-        Document.getCurrentDocument().message(str(e), ['Ok'])
-        traceback.print_exc()
+    api.run(main, globals())
 
