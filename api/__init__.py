@@ -10,9 +10,83 @@
 
 
 import os
+import subprocess
 import sys
 import traceback
 import __main__ as main
+
+
+class APIClipboard:
+    CMDMAP = {
+        'Darwin': ('pbcopy', 'pbpaste'),
+        'Linux':  ('xsel -b -i', 'xsel -b -o'),
+    }
+    def __init__(self):
+        uname = os.uname()[0]
+        if uname in self.CMDMAP:
+            self._cmd_copy, self._cmd_paste = self.CMDMAP[uname]
+        else:
+            raise NotImplementedError("%s not supported" % os.uname()[0])
+
+    def copy(self, s):
+        proc = subprocess.Popen(self._cmd_copy,
+                                env={'LANG': 'en_US.UTF-8'},
+                                stdin=subprocess.PIPE,
+                                shell=True)
+        proc.communicate(s.encode('utf-8'))
+
+    def paste(self):
+        proc = subprocess.Popen(self._cmd_paste,
+                                env={'LANG': 'en_US.UTF-8'},
+                                stdout=subprocess.PIPE,
+                                shell=True)
+        return proc.communicate().decode('utf-8', errors='ignore')
+
+
+class APIInstruction:
+    def __init__(self, hseg, addr):
+        self._hseg = hseg
+        self.addr = addr
+        if hseg.getTypeAtAddress(addr) in (main.Segment.TYPE_CODE,
+                                           main.Segment.TYPE_PROCEDURE):
+            self._hins = hseg.getInstructionAtAddress(addr)
+            self._bytes = hseg.readBytes(addr,
+                                         self._hins.getInstructionLength())
+        else:
+            self._hins = None
+            self._bytes = hseg.readBytes(addr, 1)
+            self._op = 'db'
+            self._args = "0x%s" % hex(self)
+
+    @property
+    def raw(self):
+        return self._hins
+
+    def __len__(self):
+        return len(self._bytes)
+
+    def __hex__(self):
+        return ''.join(x.encode('hex') for x in self._bytes)
+
+    def __str__(self):
+        return "%-8s %s" % (self.op, self.args)
+
+    @property
+    def op(self):
+        if self._hins != None:
+            return self._hins.getInstructionString()
+        else:
+            return self._op
+
+    @property
+    def args(self):
+        if self._hins != None:
+            insargs = []
+            for i in range(self._hins.getArgumentCount()):
+                insargs.append(self._hins.getRawArgument(i))
+            return ', '.join(insargs)
+        else:
+            return self._args
 
 
 class APIDocument:
@@ -27,8 +101,8 @@ class APIDocument:
 class APISelection:
     def __init__(self, hdoc):
         self._hsel = hdoc.getSelectionAddressRange()
-        self._hseg = hdoc.getCurrentSegment()
         self._raw_lines = hdoc.getRawSelectedLines()
+        self._segments = segments.in_range(self.start, self.end)
 
     @property
     def start(self):
@@ -36,7 +110,7 @@ class APISelection:
 
     @property
     def end(self):
-        return self._hsel[0]
+        return self._hsel[1]
 
     def __len__(self):
         return self.end - self.start
@@ -45,6 +119,13 @@ class APISelection:
         # Note: Raw lines contains the whole line if there was no selection,
         # so we cannot differentiate a one-line selection from no selection.
         return len(self._raw_lines) > 1
+
+    def instructions(self):
+        for seg in self._segments:
+            start = max(seg.start, self.start)
+            end = min(seg.end, self.end)
+            for ins in seg.instructions(start, end):
+                yield ins
 
 
 class APIExecutable:
@@ -111,6 +192,19 @@ class APISegment:
     def disassemble(self):
         self._hseg.disassembleWholeSegment()
 
+    def instructions(self, start=None, end=None):
+        if start == None:
+            start = self.start
+        if end == None:
+            end = self.end
+        size = end - start
+        buf = self._hseg.readBytes(start, size)
+        pos = start
+        while pos < end:
+            ins = APIInstruction(self._hseg, pos)
+            yield ins
+            pos += len(ins)
+
 
 class APISegments:
     def __init__(self, hdoc):
@@ -132,6 +226,13 @@ class APISegments:
             return seg
         raise ValueError("Address %x not in any segment" % addr)
 
+    def in_range(self, start, end):
+        segs = []
+        for seg in self:
+            if start > seg.end or end < seg.start:
+                continue
+            segs.append(seg)
+        return segs
 
 
 def message(*args, **kwargs):
@@ -219,6 +320,8 @@ def run(script_main):
     executable = APIExecutable(hdoc)
     global segments
     segments = APISegments(hdoc)
+    global clipboard
+    clipboard = APIClipboard()
 
     try:
         print("Executing %s" % script_name)
