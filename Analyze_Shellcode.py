@@ -317,12 +317,12 @@ def main():
         seg.mark_as_undefined()
         seg.disassemble()
 
-    if sel.is_single_instruction():
-        print("operating on current segment")
-        shellcode = seg
-    else:
+    if sel.is_range():
         print("operating on current selection")
         shellcode = sel
+    else:
+        print("operating on current segment")
+        shellcode = seg
 
     print("analyzing range %x:%x" % (shellcode.start, shellcode.end))
 

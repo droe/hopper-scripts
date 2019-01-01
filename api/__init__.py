@@ -26,6 +26,7 @@ class APISelection:
     def __init__(self, hdoc):
         self._hsel = hdoc.getSelectionAddressRange()
         self._hseg = hdoc.getCurrentSegment()
+        self._raw_lines = hdoc.getRawSelectedLines()
 
     @property
     def start(self):
@@ -38,17 +39,10 @@ class APISelection:
     def __len__(self):
         return self.end - self.start
 
-    def is_single_instruction(self):
-        typ = self._hseg.getTypeAtAddress(self._hsel[0])
-        #if typ in (Segment.TYPE_EXTERN,):
-        if typ in (61,):
-            return self._hsel[1] == self._hsel[0] + (executable.arch_bits / 8)
-        if typ in (Segment.TYPE_CODE, Segment.TYPE_PROCEDURE):
-            hins = self._hseg.getInstructionAtAddress(self._hsel[0])
-            return self._hsel[1] == self._hsel[0] + hins.getInstructionLength()
-        # TODO handle other types
-        raise RuntimeError("Selection starts with unhandled type %s (%i)" % ( \
-                           self._hseg.stringForType(typ), typ))
+    def is_range(self):
+        # Note: Raw lines contains the whole line if there was no selection,
+        # so we cannot differentiate a one-line selection from no selection.
+        return len(self._raw_lines) > 1
 
 
 class APIExecutable:

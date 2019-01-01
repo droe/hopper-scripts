@@ -12,11 +12,11 @@
 # hassles; at least on macOS, Hopper uses system python2, not Brew or MacPorts.
 
 
+import api
 import os
 import re
 import subprocess
 import tempfile
-import api
 
 
 def parse_yara_meta(s):

@@ -12,10 +12,8 @@
 # that will result in a different user experience than if the import would have
 # been handled by Hopper by name.
 
-# TODO convert to new API
 
-
-import traceback
+import api
 import re
 
 
@@ -647,79 +645,31 @@ IMPORTS = {
 }
 
 
-def hexaddr(addr):
-    return "0x%x" % addr
-
-
-def selection_is_single_instruction(doc, seg, sel):
-    typ = seg.getTypeAtAddress(sel[0])
-    #if typ in (Segment.TYPE_EXTERN,):
-    if typ in (61,):
-        if doc.is64Bits():
-            return sel[1] == sel[0] + 8
-        else:
-            return sel[1] == sel[0] + 4
-    if typ in (Segment.TYPE_CODE, Segment.TYPE_PROCEDURE):
-        ins = seg.getInstructionAtAddress(sel[0])
-        return sel[1] == sel[0] + ins.getInstructionLength()
-    raise RuntimeError("Selection starts with unhandled type %s (%i)" % ( \
-                       seg.stringForType(typ), typ))
-
-
-class Segments:
-    def __init__(self, doc):
-        self._doc = doc
-
-    def __iter__(self):
-        segments = []
-        for i in range(self._doc.getSegmentCount()):
-            segments.append(self._doc.getSegment(i))
-        return iter(segments)
-
-
-class SegmentRanges:
-    def __init__(self, doc):
-        self._segments = Segments(doc)
-
-    def __iter__(self):
-        ranges = []
-        for seg in self._segments:
-            ranges.append((seg.getStartingAddress(), seg.getLength()))
-        return iter(ranges)
-
-
 def main():
-    doc = Document.getCurrentDocument()
-    seg = doc.getCurrentSegment()
-    sel = doc.getSelectionAddressRange()
-
-    if selection_is_single_instruction(doc, seg, sel):
-        ranges = SegmentRanges(doc)
+    sel = api.selection()
+    if sel.is_range():
+        ranges = (sel, )
     else:
-        ranges = ((sel[0], sel[1] - sel[0]), )
+        ranges = api.segments
 
-    pattern = re.compile(r'(imp|j)_ordinal_([A-Za-z0-9_]+).[Dd][Ll][Ll]_([0-9]+)')
-    for range_addr, range_size in ranges:
-        for addr in range(range_addr, range_addr + range_size):
-            name = doc.getNameAtAddress(addr)
-            if name == None:
+    pat = re.compile(r'(imp|j)_ordinal_([A-Za-z0-9_]+).[Dd][Ll][Ll]_([0-9]+)')
+    for r in ranges:
+        for addr in range(r.start, r.end):
+            label = api.get_label(addr)
+            if label == None:
                 continue
-            m = pattern.match(name)
+            m = pat.match(label)
             if not m:
                 continue
             prefix = m.group(1) + '_'
             libname = m.group(2).lower() + '.dll'
             ordinal = int(m.group(3))
             if libname in IMPORTS and ordinal in IMPORTS[libname]:
-                symname = prefix + IMPORTS[libname][ordinal]
-                print("renaming %s %s to %s" % (hexaddr(addr), name, symname))
-                doc.setNameAtAddress(addr, symname)
+                new_label = prefix + IMPORTS[libname][ordinal]
+                print("renaming %x %s to %s" % (addr, label, new_label))
+                api.set_label(addr, new_label)
 
 
 if __name__ == '__main__':
-    try:
-        main()
-    except Exception as e:
-        Document.getCurrentDocument().message(str(e), ['Ok'])
-        traceback.print_exc()
+    api.run(main, globals())
 
