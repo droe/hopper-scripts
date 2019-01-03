@@ -318,7 +318,7 @@ def main():
     print("analyzing range %x:%x" % (shellcode.start, shellcode.end))
 
     # identify and mark known blocks
-    kbhelper = KnowhBlocksHelper(seg.raw,
+    kbhelper = KnownBlocksHelper(seg.raw,
                                  shellcode.start, len(shellcode))
     for block, start_addr, end_addr in kbhelper.yield_known_blocks():
         print("---> found known block '%s' at %x" % (block['name'],
