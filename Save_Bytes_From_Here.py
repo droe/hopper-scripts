@@ -1,12 +1,10 @@
 # vim: set fileencoding=utf-8 :
 
-# «Annotate Stack Strings In Selection» for Hopper 4
+# «Save Bytes From Here» for Hopper 4
 # Copyright (c) 2018, Daniel Roethlisberger <daniel@roe.ch>
 # https://github.com/droe/hopper-scripts
 #
-# Annotate stack strings in the current selection with their decoded string
-# form.  Supports XOR decryption using a single or multi-byte key and no
-# feedback.
+# Save n bytes from current position to a file, optionally XOR decoded.
 
 
 import api
@@ -25,6 +23,12 @@ def xorcrypt(s, key):
 
 
 def main():
+    addr = api.selection().start
+    size = api.ask_int("Number of bytes")
+    if size == None:
+        return
+    blob = api.document.read(addr, size)
+
     ans = api.ask_hex("XOR key in hex (optional)")
     if ans == None:
         return
@@ -32,18 +36,12 @@ def main():
         key = '\x00'
     else:
         key = unhexlify(ans)
+    blob = xorcrypt(blob, key)
 
-    for ins in api.selection().instructions():
-        if ins.op in ('mov', 'movabs'):
-            data = ins.arg(1)
-        else:
-            continue
-        if not data.startswith('0x'):
-            continue
-        data = unhexlify(data[2:])
-        data = reversed(data)
-        data = xorcrypt(data, key)
-        api.set_icomment(ins.addr, repr(data))
+    filename = api.ask_file("Save bytes to", None, True)
+
+    with open(filename, 'w') as f:
+        f.write(blob)
 
 
 if __name__ == '__main__':

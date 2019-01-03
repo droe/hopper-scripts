@@ -33,6 +33,8 @@ python API, otherwise the scripts are self-contained.
     current cursor position
 -   **Fix Imports By Ordinal** - rename labels of imported functions by ordinal
     to their actual names
+-   **Save Bytes From Here** - carve and save an arbitrarily-sized blob of
+    optionally XOR-decrypted bytes from the current cursor position to a file
 
 ## Support
 

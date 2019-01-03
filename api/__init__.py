@@ -114,6 +114,9 @@ class APIDocument:
     def raw(self):
         return self._hdoc
 
+    def read(self, addr, size):
+        return self._hdoc.readBytes(addr, size)
+
 
 class APISelection:
     def __init__(self, hdoc):
@@ -259,6 +262,34 @@ def message(*args, **kwargs):
 def ask(*args, **kwargs):
     return document.raw.ask(*args, **kwargs)
 
+def ask_int(*args, **kwargs):
+    ans = ask(*args, **kwargs)
+    if ans == None:
+        return None
+    ans = ans.strip()
+    is_hex = False
+    if ans.startswith('0x'):
+        ans = ans[2:]
+        is_hex = True
+    if ans.endswith('h'):
+        ans = ans[:-1]
+        is_hex = True
+    if is_hex:
+        ans = int(ans, 16)
+    else:
+        ans = int(ans)
+    return ans
+
+def ask_hex(*args, **kwargs):
+    ans = ask(*args, **kwargs)
+    if ans == None:
+        return None
+    ans = ans.strip()
+    if ans.startswith('0x'):
+        ans = ans[2:]
+    if ans.endswith('h'):
+        ans = ans[:-1]
+    return ans
 
 def ask_file(*args, **kwargs):
     return document.raw.askFile(*args, **kwargs)
