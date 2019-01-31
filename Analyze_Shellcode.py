@@ -59,6 +59,7 @@ IMPORTS = (
     "kernel32.dll!ConnectNamedPipe",
     "kernel32.dll!DisconnectNamedPipe",
     "kernel32.dll!lstrlenA",
+    "ntdll.dll!RtlCreateUserThread",
     "ntdll.dll!RtlExitUserThread",
     "advapi32.dll!RevertToSelf",
     "advapi32.dll!StartServiceCtrlDispatcherA",
