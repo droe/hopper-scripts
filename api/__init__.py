@@ -133,7 +133,7 @@ class APISelection:
         return self._hsel[1]
 
     def __len__(self):
-        return self.end - self.start
+        return int(self.end - self.start)
 
     def is_range(self):
         # Note: Raw lines contains the whole line if there was no selection,
