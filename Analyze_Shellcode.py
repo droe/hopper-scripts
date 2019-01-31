@@ -301,18 +301,18 @@ def main():
     seg = api.segments.current()
     sel = api.selection()
 
-    ans = api.message("Mark segment as undefined and disassemble?",
-                      ['Cancel', 'No', 'Yes'])
-    if ans == 0:
-        return
-    elif ans == 2:
-        seg.mark_as_undefined()
-        seg.disassemble()
-
     if sel.is_range():
         print("operating on current selection")
         shellcode = sel
     else:
+        ans = api.message("Mark segment as undefined and disassemble?",
+                          ['Cancel', 'No', 'Yes'])
+        if ans == 0:
+            return
+        elif ans == 2:
+            seg.mark_as_undefined()
+            seg.disassemble()
+
         print("operating on current segment")
         shellcode = seg
 
