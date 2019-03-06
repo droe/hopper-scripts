@@ -5,9 +5,11 @@ endif
 
 ifeq ($(shell uname),Darwin)
 SCRIPTS_DIR=	Library/Application Support/Hopper/Scripts
+REINPLACE=	sed -i ''
 endif
 ifeq ($(shell uname),Linux)
 SCRIPTS_DIR=	GNUstep/Library/ApplicationSupport/Hopper/Scripts
+REINPLACE=	sed -i''
 endif
 ifeq ($(SCRIPTS_DIR),)
 $(error $(shell uname) unsupported)
@@ -31,7 +33,7 @@ install-api: $(LIBS)
 install-scripts: $(SCRIPTS)
 	test -e $(SYMLINK) || ln -sf "$(HOME)/$(SCRIPTS_DIR)" $(SYMLINK)
 	cp $^ $(SYMLINK)/
-	sed -i '' -e s,@@yara@@,$(YARA),g $(SYMLINK)/*Yara*.py
+	$(REINPLACE) -e s,@@yara@@,$(YARA),g $(SYMLINK)/*Yara*.py
 
 diff: $(SCRIPTS) $(LIBS)
 	test -e $(SYMLINK) || ln -sf "$(HOME)/$(SCRIPTS_DIR)" $(SYMLINK)
