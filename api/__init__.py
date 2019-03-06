@@ -153,7 +153,10 @@ class APIExecutable:
         self._hdoc = hdoc
 
     def bytes(self):
-        return self._hdoc.produceNewExecutable()
+        blob = self._hdoc.produceNewExecutable()
+        if blob == None:
+            raise RuntimeError("produceNewExecutable() returned Null")
+        return blob
 
     @property
     def path(self):
