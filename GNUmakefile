@@ -16,7 +16,7 @@ $(error $(shell uname) unsupported)
 endif
 
 SCRIPTS=	$(wildcard *.py)
-LIBS=		$(wildcard api/*.py)
+LIBS=		$(wildcard hopper_api/*.py)
 SYMLINK=	Scripts
 
 
@@ -26,9 +26,9 @@ install: install-api install-scripts
 
 install-api: $(LIBS)
 	test -e $(SYMLINK) || ln -sf "$(HOME)/$(SCRIPTS_DIR)" $(SYMLINK)
-	mkdir -p $(SYMLINK)/api
-	cp $^ $(SYMLINK)/api/
-	rm -f $(SYMLINK)/api/*.pyc
+	mkdir -p $(SYMLINK)/hopper_api
+	cp $^ $(SYMLINK)/hopper_api/
+	rm -f $(SYMLINK)/hopper_api/*.pyc
 
 install-scripts: $(SCRIPTS)
 	test -e $(SYMLINK) || ln -sf "$(HOME)/$(SCRIPTS_DIR)" $(SYMLINK)

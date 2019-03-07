@@ -7,7 +7,7 @@
 # Write the file offset at the cursor position into a prefix comment
 
 
-import api
+import hopper_api as api
 
 
 def main():

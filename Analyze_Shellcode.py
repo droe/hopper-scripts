@@ -24,7 +24,7 @@
 # script run again to do the annotations.
 
 
-import api
+import hopper_api as api
 
 
 IMPORTS = (

@@ -9,7 +9,7 @@
 # feedback.
 
 
-import api
+import hopper_api as api
 import binascii
 from itertools import cycle, izip
 

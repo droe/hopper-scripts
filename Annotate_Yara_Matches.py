@@ -12,7 +12,7 @@
 # hassles; at least on macOS, Hopper uses system python2, not Brew or MacPorts.
 
 
-import api
+import hopper_api as api
 import os
 import re
 import subprocess

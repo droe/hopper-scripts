@@ -7,7 +7,7 @@
 # Copy the current selection to clipboard in yara syntax
 
 
-import api
+import hopper_api as api
 import re
 
 

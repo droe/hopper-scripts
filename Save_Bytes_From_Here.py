@@ -7,7 +7,7 @@
 # Save n bytes from current position to a file, optionally XOR decoded.
 
 
-import api
+import hopper_api as api
 import binascii
 from itertools import cycle, izip
 

@@ -13,7 +13,7 @@
 # been handled by Hopper by name.
 
 
-import api
+import hopper_api as api
 import re
 
 

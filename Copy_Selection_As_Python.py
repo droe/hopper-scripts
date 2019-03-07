@@ -7,7 +7,7 @@
 # Copy the current selection to clipboard in python syntax
 
 
-import api
+import hopper_api as api
 import re
 
 
