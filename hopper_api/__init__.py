@@ -154,9 +154,11 @@ class APIExecutable:
 
     def bytes(self):
         blob = self._hdoc.produceNewExecutable()
-        if blob == None:
-            raise RuntimeError("produceNewExecutable() returned Null")
-        return blob
+        if blob != None:
+            return blob
+        # fall back to direct file access
+        with open(self.path, 'rb') as f:
+            return f.read()
 
     @property
     def path(self):
