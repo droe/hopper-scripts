@@ -140,11 +140,15 @@ class APISelection:
         # so we cannot differentiate a one-line selection from no selection.
         return len(self._raw_lines) > 1
 
-    def instructions(self):
+    def instructions(self, start=None, end=None):
+        if start == None:
+            start = self.start
+        if end == None:
+            end = self.end
         for seg in self._segments:
-            start = max(seg.start, self.start)
-            end = min(seg.end, self.end)
-            for ins in seg.instructions(start, end):
+            seg_start = max(seg.start, start)
+            seg_end = min(seg.end, end)
+            for ins in seg.instructions(seg_start, seg_end):
                 yield ins
 
 
