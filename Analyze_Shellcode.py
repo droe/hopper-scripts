@@ -280,9 +280,11 @@ class KnownBlocksHelper:
 
 def first_stack_instruction(where, pos, n=16):
     for ins in where.instructions(pos):
-        op = ins.op
+        if ins.raw == None:
+            break
         if ins.raw.isAConditionalJump() or ins.raw.isAnInconditionalJump():
             break
+        op = ins.op
         if op in ('hlt', 'int', 'enter', 'leave'):
             break
         if op.startswith('ret') or op.startswith('iret') or \
