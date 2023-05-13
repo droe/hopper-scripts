@@ -1,7 +1,7 @@
 # vim: set fileencoding=utf-8 :
 
-# «Save Bytes From Here» for Hopper 4
-# Copyright (c) 2018, Daniel Roethlisberger <daniel@roe.ch>
+# «Save Bytes From Here» for Hopper 5
+# Copyright (c) 2018, 2023, Daniel Roethlisberger <daniel@roe.ch>
 # https://github.com/droe/hopper-scripts
 #
 # Save n bytes from current position to a file, optionally XOR decoded.
@@ -9,7 +9,7 @@
 
 import hopper_api as api
 import binascii
-from itertools import cycle, izip
+from itertools import cycle
 
 
 def unhexlify(s):
@@ -18,8 +18,11 @@ def unhexlify(s):
     return binascii.unhexlify(s)
 
 
-def xorcrypt(s, key):
-    return ''.join(chr(ord(c) ^ ord(k)) for c, k in izip(s, cycle(key)))
+def xorcrypt(buf, key):
+    if len(key) == 0:
+        return buf
+    k = cycle(key)
+    return bytes(b ^ next(k) for b in buf)
 
 
 def main():
@@ -33,17 +36,16 @@ def main():
     if ans == None:
         return
     if len(ans) == 0:
-        key = '\x00'
+        key = b'\x00'
     else:
         key = unhexlify(ans)
     blob = xorcrypt(blob, key)
 
     filename = api.ask_file("Save bytes to", None, True)
 
-    with open(filename, 'w') as f:
+    with open(filename, 'wb') as f:
         f.write(blob)
 
 
 if __name__ == '__main__':
     api.run(main)
-

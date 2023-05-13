@@ -1,6 +1,6 @@
 # Scripts for Hopper Disassembler
 
-Copyright (C) 2018, [Daniel Roethlisberger](//daniel.roe.ch/).
+Copyright (C) 2018-2019, 2023, [Daniel Roethlisberger](//daniel.roe.ch/).
 
 ## Synopsis
 
@@ -10,8 +10,8 @@ Copyright (C) 2018, [Daniel Roethlisberger](//daniel.roe.ch/).
 ## Description
 
 Some of my Hopper scripts that are polished and general enough to be
-potentially useful to others.  They should run on latest Hopper 4 on macOS and
-Linux.
+potentially useful to others.  They used to run on Hopper 4 on macOS and
+Linux and are slowly being fixed for Hopper 5 and Python 3.
 
 The scripts use a nicer wrapper API around the strictly procedural Hopper
 python API, otherwise the scripts are self-contained.
@@ -44,4 +44,3 @@ requests fixing bugs or adding features.  You are on your own.
 ## License
 
 Source code provided under a 2-clause BSD license.
-
