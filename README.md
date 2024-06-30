@@ -1,6 +1,6 @@
 # Scripts for Hopper Disassembler
 
-Copyright (C) 2018-2019, 2023, [Daniel Roethlisberger](//daniel.roe.ch/).
+Copyright (C) 2018-2019, 2023-2024, [Daniel Roethlisberger](//daniel.roe.ch/).
 
 ## Synopsis
 
@@ -35,6 +35,8 @@ python API, otherwise the scripts are self-contained.
     to their actual names
 -   **Save Bytes From Here** - carve and save an arbitrarily-sized blob of
     optionally XOR-decrypted bytes from the current cursor position to a file
+-   **Save Selection As Bytes** - carve and save an arbitrarily-sized blob of
+    optionally XOR-decrypted bytes based on the current selection to a file
 
 ## Support
 
