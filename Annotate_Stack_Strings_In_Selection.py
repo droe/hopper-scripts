@@ -11,7 +11,7 @@
 
 import hopper_api as api
 import binascii
-from itertools import cycle, izip
+from itertools import cycle
 
 
 def unhexlify(s):
@@ -20,8 +20,11 @@ def unhexlify(s):
     return binascii.unhexlify(s)
 
 
-def xorcrypt(s, key):
-    return ''.join(chr(ord(c) ^ ord(k)) for c, k in izip(s, cycle(key)))
+def xorcrypt(buf, key):
+    if len(key) == 0:
+        return buf
+    k = cycle(key)
+    return bytes(b ^ next(k) for b in buf)
 
 
 def main():
