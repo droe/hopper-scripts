@@ -42,6 +42,8 @@ def main():
     blob = xorcrypt(blob, key)
 
     filename = api.ask_file("Save bytes to", None, True)
+    if filename == None:
+        return
 
     with open(filename, 'wb') as f:
         f.write(blob)
